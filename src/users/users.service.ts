@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { encryptPassword } from 'src/auth/helpers/encryptFunctions';
 import { Repository } from 'typeorm';
@@ -28,6 +28,11 @@ export class UsersService {
   }
 
   async create({ name, email, password }: ICreateAndUpdateUser) {
+    const userAlreadyExists = await this.findOne(email);
+    if (userAlreadyExists) {
+      throw new ConflictException('User already exist');
+    }
+
     const hashPassword = encryptPassword(password);
     const user = new User(name, email, hashPassword);
 
